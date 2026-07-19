@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>ورود ادمین تیکت‌ها | TCM MC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="wrap">
+  <div class="brand"><span>👑</span><span class="full">TCM <b>MC</b></span></div>
+
+  <div class="card">
+    <h1>ورود ادمین تیکت‌ها</h1>
+    <p class="sub">برای مدیریت تیکت‌های پشتیبانی وارد شو</p>
+
+    <div class="alert error" id="errBox"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="username">نام کاربری</label>
+        <input id="username" type="text" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">رمز عبور</label>
+        <input id="password" type="password" required autocomplete="current-password">
+      </div>
+      <button id="submitBtn" type="submit" class="btn-main">ورود</button>
+    </form>
+  </div>
+
+  <a href="../index.html" class="back-link">🏠 بازگشت به سایت اصلی</a>
+</div>
+
+<script>
+  var TCM_API_BASE = "https://YOUR-RAILWAY-APP.up.railway.app/api/";
+  function tcmSetAdminToken(t){ localStorage.setItem("tcm_admin_token", t); }
+
+  var form = document.getElementById("loginForm");
+  var errBox = document.getElementById("errBox");
+  var submitBtn = document.getElementById("submitBtn");
+  function showError(msg){ errBox.textContent = msg; errBox.classList.add("show"); }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    errBox.classList.remove("show");
+    if(submitBtn.disabled) return;
+    submitBtn.disabled = true; submitBtn.textContent = "در حال ورود...";
+
+    fetch(TCM_API_BASE + "admin/login.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value
+      })
+    }).then(function(res){ return res.json().then(function(data){ return { ok: res.ok, data: data }; }); })
+      .then(function(res){
+        if(res.ok){
+          tcmSetAdminToken(res.data.token);
+          window.location.href = "index.html";
+        } else {
+          showError(res.data.message || "ورود ناموفق بود.");
+        }
+      })
+      .catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); })
+      .finally(function(){ submitBtn.disabled = false; submitBtn.textContent = "ورود"; });
+  });
+</script>
+</body>
+</html>

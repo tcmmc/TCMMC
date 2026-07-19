@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>مدیریت تیکت‌ها | TCM MC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+  .filter-row{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .filter-btn{
+    padding:8px 16px; border-radius:999px; font-family:inherit; font-weight:700; font-size:12.5px;
+    border:1px solid var(--border-bright); background:rgba(255,255,255,0.02); color:var(--muted); cursor:pointer;
+  }
+  .filter-btn.active{ background:rgba(94,203,255,0.12); color:var(--sky); border-color:var(--sky); }
+  .logout-btn{
+    padding:9px 16px; border-radius:999px; font-family:inherit; font-weight:700; font-size:13px;
+    border:1px solid rgba(255,110,110,0.4); background:rgba(255,80,80,0.08); color:#ff9a9a; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="page-wide">
+  <div class="page-header">
+    <div class="brand"><span>👑</span><span class="full">TCM <b>MC</b> · پنل تیکت</span></div>
+    <button class="logout-btn" id="logoutBtn">خروج</button>
+  </div>
+
+  <div class="alert error" id="errBox"></div>
+
+  <div class="filter-row">
+    <button class="filter-btn active" data-status="">همه</button>
+    <button class="filter-btn" data-status="open">باز</button>
+    <button class="filter-btn" data-status="answered">پاسخ داده شده</button>
+    <button class="filter-btn" data-status="closed">بسته شده</button>
+  </div>
+
+  <div class="panel">
+    <div id="ticketList"><p class="foot-note" style="text-align:right;">در حال بارگذاری...</p></div>
+  </div>
+</div>
+
+<script src="admin-api.js"></script>
+<script>
+  tcmAdminRequireLogin();
+
+  var errBox = document.getElementById("errBox");
+  function showError(msg){ errBox.textContent = msg; errBox.classList.add("show"); }
+
+  document.getElementById("logoutBtn").addEventListener("click", function(){
+    tcmAdminApi("admin/logout.php", {}).finally(function(){
+      tcmAdminClearToken();
+      window.location.href = "login.html";
+    });
+  });
+
+  function statusLabel(status){
+    if(status === "open") return { text: "باز", cls: "open" };
+    if(status === "answered") return { text: "پاسخ داده شده", cls: "answered" };
+    return { text: "بسته شده", cls: "closed" };
+  }
+
+  var currentFilter = "";
+  document.querySelectorAll(".filter-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      currentFilter = btn.getAttribute("data-status");
+      loadTickets();
+    });
+  });
+
+  function loadTickets(){
+    var listEl = document.getElementById("ticketList");
+    listEl.innerHTML = "<p class=\"foot-note\" style=\"text-align:right;\">در حال بارگذاری...</p>";
+    tcmAdminApi("admin/tickets_list.php", { status: currentFilter }).then(function(res){
+      if(!res.ok){
+        if(res.status === 401){ tcmAdminClearToken(); window.location.href = "login.html"; return; }
+        listEl.innerHTML = "";
+        showError(res.data.message || "خطا در دریافت تیکت‌ها.");
+        return;
+      }
+      var tickets = res.data.tickets || [];
+      listEl.innerHTML = "";
+      if(tickets.length === 0){
+        listEl.innerHTML = "<p class=\"foot-note\" style=\"text-align:right;\">تیکتی پیدا نشد.</p>";
+        return;
+      }
+      tickets.forEach(function(t){
+        var row = document.createElement("a");
+        row.className = "ticket-row";
+        row.href = "ticket.html?id=" + encodeURIComponent(t.id);
+        var st = statusLabel(t.status);
+        row.innerHTML =
+          "<div><div class=\"t-title\"></div><div class=\"t-date\"></div></div>" +
+          "<span class=\"status-pill " + st.cls + "\"></span>";
+        row.querySelector(".t-title").textContent = t.title + " — " + t.username;
+        row.querySelector(".t-date").textContent = t.created_at;
+        row.querySelector(".status-pill").textContent = st.text;
+        listEl.appendChild(row);
+      });
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); });
+  }
+
+  loadTickets();
+</script>
+</body>
+</html>

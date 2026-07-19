@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>مشاهده تیکت | TCM MC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+  .status-select{
+    padding:9px 14px; border-radius:999px; font-family:inherit; font-weight:700; font-size:12.5px;
+    border:1px solid var(--border-bright); background:var(--panel-solid); color:var(--text); cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="page-wide">
+  <div class="page-header">
+    <a href="index.html" class="back-link">← بازگشت به لیست</a>
+    <select class="status-select" id="statusSelect">
+      <option value="open">باز</option>
+      <option value="answered">پاسخ داده شده</option>
+      <option value="closed">بسته شده</option>
+    </select>
+  </div>
+
+  <div class="alert error" id="errBox"></div>
+  <div class="alert success" id="okBox"></div>
+
+  <div class="panel">
+    <h2 id="ticketTitle">—</h2>
+    <p class="foot-note" id="ticketMeta" style="text-align:right; margin-bottom:16px;"></p>
+    <div id="ticketMessages"></div>
+  </div>
+
+  <div class="panel">
+    <h2>ارسال پاسخ</h2>
+    <form id="replyForm">
+      <div class="field">
+        <label for="replyBody">متن پاسخ</label>
+        <textarea id="replyBody" required maxlength="4000" placeholder="پاسخت رو اینجا بنویس..."></textarea>
+      </div>
+      <button type="submit" class="btn-main" id="replySubmitBtn">ارسال پاسخ</button>
+    </form>
+  </div>
+</div>
+
+<script src="admin-api.js"></script>
+<script>
+  tcmAdminRequireLogin();
+
+  var ticketId = new URLSearchParams(window.location.search).get("id");
+  if(!ticketId){ window.location.href = "index.html"; }
+
+  var errBox = document.getElementById("errBox");
+  var okBox = document.getElementById("okBox");
+  function showError(msg){ okBox.classList.remove("show"); errBox.textContent = msg; errBox.classList.add("show"); }
+  function showOk(msg){ errBox.classList.remove("show"); okBox.textContent = msg; okBox.classList.add("show"); }
+
+  function loadTicket(){
+    tcmAdminApi("admin/ticket_view.php", { id: ticketId }).then(function(res){
+      if(!res.ok){
+        if(res.status === 401){ tcmAdminClearToken(); window.location.href = "login.html"; return; }
+        showError(res.data.message || "این تیکت پیدا نشد.");
+        return;
+      }
+      var ticket = res.data.ticket;
+      var messages = res.data.messages || [];
+
+      document.getElementById("ticketTitle").textContent = ticket.title;
+      document.getElementById("ticketMeta").textContent =
+        "از طرف " + ticket.username + " (" + ticket.email + ") — ثبت شده در " + ticket.created_at;
+      document.getElementById("statusSelect").value = ticket.status;
+
+      var msgsWrap = document.getElementById("ticketMessages");
+      msgsWrap.innerHTML = "";
+      messages.forEach(function(m){
+        var bubble = document.createElement("div");
+        bubble.className = "msg-bubble " + (m.sender_type === "admin" ? "admin" : "user");
+        var meta = document.createElement("div"); meta.className = "m-meta";
+        meta.textContent = (m.sender_type === "admin" ? "پاسخ تیم پشتیبانی" : "پیام کاربر") + " — " + m.created_at;
+        var body = document.createElement("div"); body.textContent = m.body;
+        bubble.appendChild(meta); bubble.appendChild(body);
+        msgsWrap.appendChild(bubble);
+      });
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); });
+  }
+
+  document.getElementById("statusSelect").addEventListener("change", function(){
+    var status = this.value;
+    tcmAdminApi("admin/status_update.php", { id: ticketId, status: status }).then(function(res){
+      if(res.ok) showOk("وضعیت تیکت به‌روزرسانی شد.");
+      else showError(res.data.message || "تغییر وضعیت انجام نشد.");
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); });
+  });
+
+  document.getElementById("replyForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var btn = document.getElementById("replySubmitBtn");
+    if(btn.disabled) return;
+    btn.disabled = true; btn.textContent = "در حال ارسال...";
+
+    var body = document.getElementById("replyBody").value.trim();
+    tcmAdminApi("admin/reply.php", { id: ticketId, body: body }).then(function(res){
+      if(res.ok){
+        document.getElementById("replyBody").value = "";
+        showOk("پاسخ ارسال شد.");
+        loadTicket();
+      } else {
+        showError(res.data.message || "ارسال پاسخ انجام نشد.");
+      }
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); })
+      .finally(function(){ btn.disabled = false; btn.textContent = "ارسال پاسخ"; });
+  });
+
+  loadTicket();
+</script>
+</body>
+</html>
