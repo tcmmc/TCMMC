@@ -2,7 +2,7 @@ backend:
   name: github
   # این دو خط رو با آدرس واقعی ریپوی خودت جایگزین کن، مثلاً:
   # repo: tcmmc/TCM-MC
-  repo: tcmmc/TCM--MC
+  repo: tcmmc/TCMMC
   branch: main
 
 media_folder: "assets/uploads"
