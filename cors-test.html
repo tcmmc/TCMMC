@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تست CORS</title>
+<style>
+  body{ font-family: Tahoma, sans-serif; background:#05070f; color:#eef2ff; padding:20px; }
+  button{ display:block; width:100%; margin:10px 0; padding:14px; border-radius:10px; border:none; background:#3d63f5; color:#fff; font-size:14px; }
+  pre{ background:#0d1330; padding:12px; border-radius:10px; white-space:pre-wrap; word-break:break-all; font-size:12px; border:1px solid #33447f; }
+  h3{ font-size:14px; margin-top:20px; }
+</style>
+</head>
+<body>
+  <h1 style="font-size:16px;">تست تشخیصی CORS</h1>
+  <p style="font-size:13px; color:#93a3ce;">آدرس فعلی صفحه (Origin): <span id="origin"></span></p>
+
+  <h3>تست ۱: درخواست ساده (بدون preflight)</h3>
+  <button onclick="testSimple()">اجرای تست ۱</button>
+  <pre id="r1">هنوز اجرا نشده</pre>
+
+  <h3>تست ۲: درخواست کامل با JSON (با preflight)</h3>
+  <button onclick="testJson()">اجرای تست ۲</button>
+  <pre id="r2">هنوز اجرا نشده</pre>
+
+  <h3>تست ۳: فقط خود OPTIONS</h3>
+  <button onclick="testOptions()">اجرای تست ۳</button>
+  <pre id="r3">هنوز اجرا نشده</pre>
+
+<script>
+  document.getElementById("origin").textContent = window.location.origin;
+  var API = "https://tcm-mc-backend-production.up.railway.app/api/auth/register.php";
+
+  function show(id, text){ document.getElementById(id).textContent = text; }
+
+  function testSimple(){
+    show("r1", "در حال اجرا...");
+    fetch(API, { method: "POST", headers: { "Content-Type": "text/plain" }, body: "test" })
+      .then(function(res){ return res.text().then(function(t){ show("r1", "وضعیت: " + res.status + "\n" + t); }); })
+      .catch(function(err){ show("r1", "خطا: " + err.name + " - " + err.message); });
+  }
+
+  function testJson(){
+    show("r2", "در حال اجرا...");
+    fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({test:1}) })
+      .then(function(res){ return res.text().then(function(t){ show("r2", "وضعیت: " + res.status + "\n" + t); }); })
+      .catch(function(err){ show("r2", "خطا: " + err.name + " - " + err.message); });
+  }
+
+  function testOptions(){
+    show("r3", "در حال اجرا...");
+    fetch(API, { method: "OPTIONS" })
+      .then(function(res){
+        var headers = [];
+        res.headers.forEach(function(v,k){ headers.push(k+": "+v); });
+        show("r3", "وضعیت: " + res.status + "\nهدرها:\n" + headers.join("\n"));
+      })
+      .catch(function(err){ show("r3", "خطا: " + err.name + " - " + err.message); });
+  }
+</script>
+</body>
+</html>
