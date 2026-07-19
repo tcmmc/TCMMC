@@ -1,4 +1,4 @@
-var TCM_API_BASE = "https://YOUR-RAILWAY-APP.up.railway.app/api/";
+var TCM_API_BASE = "https://tcmmc-backend-production.up.railway.app/api/";
 
 function tcmAdminGetToken(){ return localStorage.getItem("tcm_admin_token") || ""; }
 function tcmAdminClearToken(){ localStorage.removeItem("tcm_admin_token"); }
