@@ -1,0 +1,129 @@
+backend:
+  name: github
+  # این دو خط رو با آدرس واقعی ریپوی خودت جایگزین کن، مثلاً:
+  # repo: tcmmc/TCM-MC
+  repo: tcmmc/TCM--MC
+  branch: main
+
+media_folder: "assets/uploads"
+public_folder: "assets/uploads"
+
+collections:
+  - name: "site"
+    label: "سایت TCM MC"
+    files:
+      - name: "settings"
+        label: "محتوای اصلی سایت"
+        file: "content/site.json"
+        fields:
+          - { label: "عنوان اصلی (HTML ساده مثل <br> مجازه)", name: "heroTitle", widget: "string" }
+          - { label: "توضیحات هدر", name: "heroDesc", widget: "text" }
+          - { label: "متن دکمه‌ی ورود به سرور (هدر اصلی)", name: "ctaText", widget: "string" }
+          - { label: "لینک دکمه‌ی ورود به سرور (هدر اصلی)", name: "ctaHref", widget: "string" }
+          - { label: "متن دکمه‌ی ثبت‌نام (نوار بالا)", name: "navCtaText", widget: "string" }
+          - { label: "لینک دکمه‌ی ثبت‌نام (نوار بالا)", name: "navCtaHref", widget: "string" }
+          - { label: "متن دکمه‌ی ورود (نوار بالا)", name: "navRulesText", widget: "string" }
+          - { label: "لینک دکمه‌ی ورود (نوار بالا)", name: "navRulesHref", widget: "string" }
+          - { label: "توضیح راهنمای اتصال سریع", name: "joinNote", widget: "text" }
+          - { label: "آدرس سرور", name: "serverIp", widget: "string" }
+          - { label: "پورت سرور", name: "serverPort", widget: "string" }
+          - { label: "نسخه", name: "specVersion", widget: "string" }
+          - { label: "گیم‌مود", name: "specMode", widget: "string" }
+          - { label: "دشواری", name: "specDifficulty", widget: "string" }
+          - { label: "وضعیت PvP", name: "specPvp", widget: "string" }
+          - { label: "متن معرفی فوتر", name: "footerBrandText", widget: "text" }
+          - { label: "متن کپی‌رایت فوتر", name: "footerBottom", widget: "string" }
+          - { label: "لوگو (نماد سایت)", name: "logoUrl", widget: "image", required: false, hint: "اگه خالی بذاری، لوگوی فعلی سایت باقی می‌مونه." }
+          - { label: "عنوان کوچک بخش ویژگی‌ها", name: "featuresEyebrow", widget: "string" }
+          - { label: "عنوان اصلی بخش ویژگی‌ها", name: "featuresTitle", widget: "string" }
+          - { label: "توضیح بخش ویژگی‌ها", name: "featuresSub", widget: "string" }
+          - { label: "عنوان کوچک بخش وبلاگ", name: "newsEyebrow", widget: "string" }
+          - { label: "عنوان اصلی بخش وبلاگ", name: "newsTitle", widget: "string" }
+          - { label: "توضیح بخش وبلاگ", name: "newsSub", widget: "string" }
+          - { label: "عنوان کوچک بخش قوانین", name: "rulesEyebrow", widget: "string" }
+          - { label: "عنوان اصلی بخش قوانین", name: "rulesTitle", widget: "string" }
+          - { label: "توضیح بخش قوانین", name: "rulesSub", widget: "string" }
+          - { label: "عنوان کوچک بخش راهنما", name: "guideEyebrow", widget: "string" }
+          - { label: "عنوان اصلی بخش راهنما", name: "guideTitle", widget: "string" }
+          - { label: "توضیح بخش راهنما", name: "guideSub", widget: "string" }
+          - { label: "عنوان کوچک بخش نظرات", name: "testiEyebrow", widget: "string" }
+          - { label: "عنوان اصلی بخش نظرات", name: "testiTitle", widget: "string" }
+          - { label: "عنوان کوچک بخش سوالات متداول", name: "faqEyebrow", widget: "string" }
+          - { label: "عنوان اصلی بخش سوالات متداول", name: "faqTitle", widget: "string" }
+          - { label: "عنوان ستون لینک‌های فوتر", name: "footerLinksTitle", widget: "string" }
+          - { label: "لینک روبیکا", name: "socialRubika", widget: "string", required: false }
+          - { label: "لینک تلگرام", name: "socialTelegram", widget: "string", required: false }
+          - { label: "ایمیل (mailto:...)", name: "socialEmail", widget: "string", required: false }
+          - { label: "لینک دیسکورد (خالی = مخفی)", name: "socialDiscord", widget: "string", required: false }
+          - { label: "لینک اینستاگرام (خالی = مخفی)", name: "socialInstagram", widget: "string", required: false }
+          - label: "مراحل راهنمای اتصال"
+            name: "guideSteps"
+            widget: "list"
+            summary: "{{title}}"
+            fields:
+              - { label: "عنوان مرحله", name: "title", widget: "string" }
+              - { label: "توضیح مرحله", name: "desc", widget: "text" }
+          - label: "لینک‌های ستون «دسترسی سریع» فوتر"
+            name: "footerLinks"
+            widget: "list"
+            summary: "{{label}}"
+            fields:
+              - { label: "متن لینک", name: "label", widget: "string" }
+              - { label: "لینک (مثلاً #rules)", name: "href", widget: "string" }
+          - { label: "عدد آمار ۱", name: "stat1Num", widget: "string" }
+          - { label: "برچسب آمار ۱", name: "stat1Lbl", widget: "string" }
+          - { label: "عدد آمار ۲", name: "stat2Num", widget: "string" }
+          - { label: "برچسب آمار ۲", name: "stat2Lbl", widget: "string" }
+          - { label: "عدد آمار ۳", name: "stat3Num", widget: "string" }
+          - { label: "برچسب آمار ۳", name: "stat3Lbl", widget: "string" }
+          - label: "ویژگی‌های سرور"
+            name: "features"
+            widget: "list"
+            summary: "{{title}}"
+            fields:
+              - { label: "آیکون (ایموجی)", name: "icon", widget: "string" }
+              - { label: "عنوان", name: "title", widget: "string" }
+              - { label: "توضیح", name: "desc", widget: "text" }
+          - label: "قوانین سرور"
+            name: "rules"
+            widget: "list"
+            summary: "{{title}}"
+            fields:
+              - { label: "عنوان قانون", name: "title", widget: "string" }
+              - { label: "توضیح قانون", name: "desc", widget: "text" }
+          - label: "نظرات کاربران"
+            name: "testimonials"
+            widget: "list"
+            summary: "{{name}} — {{stars}}★"
+            fields:
+              - { label: "نام کاربر", name: "name", widget: "string" }
+              - { label: "امتیاز (۱ تا ۵)", name: "stars", widget: "number", min: 1, max: 5, value_type: "int" }
+              - { label: "متن نظر", name: "text", widget: "text" }
+          - label: "سوالات متداول"
+            name: "faq"
+            widget: "list"
+            summary: "{{q}}"
+            fields:
+              - { label: "سوال", name: "q", widget: "string" }
+              - { label: "جواب", name: "a", widget: "text" }
+
+      - name: "news"
+        label: "وبلاگ / اخبار"
+        file: "content/news.json"
+        # این فایل خودش یک آرایه‌ست (نه یک آبجکت با کلید)، برای همین از extension استفاده می‌کنیم
+        format: "json"
+        fields:
+          - label: "مطالب وبلاگ"
+            name: "posts"
+            widget: "list"
+            required: false
+            summary: "{{title}}"
+            fields:
+              - { label: "عنوان خبر", name: "title", widget: "string" }
+              - { label: "تصویر شاخص", name: "image", widget: "image", required: false }
+              - { label: "نام نویسنده", name: "author", widget: "string" }
+              - { label: "تاریخ انتشار", name: "date", widget: "datetime" }
+              - { label: "دسته‌بندی", name: "category", widget: "string", required: false }
+              - { label: "خلاصه‌ی خبر", name: "excerpt", widget: "text" }
+              - { label: "متن کامل خبر", name: "body", widget: "text" }
+
