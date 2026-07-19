@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>ورود | TCM MC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="wrap">
+  <div class="brand"><span>👑</span><span class="full">TCM <b>MC</b></span></div>
+
+  <div class="card">
+    <h1>ورود به حساب</h1>
+    <p class="sub">برای ثبت و پیگیری تیکت پشتیبانی وارد شو</p>
+
+    <div class="alert error" id="errBox"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="identity">نام کاربری یا ایمیل</label>
+        <input id="identity" name="identity" type="text" placeholder="نام کاربری یا ایمیل" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">رمز عبور</label>
+        <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+
+      <button id="submitBtn" type="submit" class="btn-main">ورود</button>
+    </form>
+  </div>
+
+  <p class="foot-note">حساب نداری؟ <a href="register.html" style="color:var(--sky); text-decoration:none;">ثبت‌نام کن</a></p>
+  <a href="index.html" class="back-link">🏠 بازگشت به سایت اصلی</a>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  var form = document.getElementById("loginForm");
+  var errBox = document.getElementById("errBox");
+  var submitBtn = document.getElementById("submitBtn");
+
+  function showError(msg){ errBox.textContent = msg; errBox.classList.add("show", "error"); }
+  function clearError(){ errBox.classList.remove("show"); }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    clearError();
+
+    var identity = document.getElementById("identity").value.trim();
+    var password = document.getElementById("password").value;
+
+    if(submitBtn.disabled) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "در حال ورود...";
+
+    tcmApi("auth/login.php", { identity: identity, password: password })
+      .then(function(res){
+        if(res.ok){
+          tcmSetToken(res.data.token);
+          window.location.href = "account.html";
+        } else {
+          // Deliberately generic message — never reveal whether the email/username exists.
+          showError(res.data.message || "نام کاربری یا رمز عبور اشتباهه.");
+        }
+      })
+      .catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد. دوباره تلاش کن."); })
+      .finally(function(){
+        submitBtn.disabled = false;
+        submitBtn.textContent = "ورود";
+      });
+  });
+</script>
+</body>
+</html>

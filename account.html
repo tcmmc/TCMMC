@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>حساب کاربری | TCM MC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  .tabs{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .tab-btn{
+    padding:9px 18px; border-radius:999px; font-family:inherit; font-weight:700; font-size:13px;
+    border:1px solid var(--border-bright); background:rgba(255,255,255,0.02); color:var(--muted); cursor:pointer;
+  }
+  .tab-btn.active{ background:rgba(94,203,255,0.12); color:var(--sky); border-color:var(--sky); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+  .logout-btn{
+    padding:9px 16px; border-radius:999px; font-family:inherit; font-weight:700; font-size:13px;
+    border:1px solid rgba(255,110,110,0.4); background:rgba(255,80,80,0.08); color:#ff9a9a; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="page-wide">
+  <div class="page-header">
+    <div class="brand"><span>👑</span><span class="full">TCM <b>MC</b></span></div>
+    <button class="logout-btn" id="logoutBtn">خروج از حساب</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tickets">تیکت‌های من</button>
+    <button class="tab-btn" data-tab="new-ticket">تیکت جدید</button>
+    <button class="tab-btn" data-tab="account">اطلاعات حساب</button>
+  </div>
+
+  <div class="alert error" id="errBox"></div>
+  <div class="alert success" id="okBox"></div>
+
+  <!-- تیکت‌های من -->
+  <div class="tab-panel active" id="panel-tickets">
+    <div class="panel">
+      <h2>تیکت‌های من</h2>
+      <div id="ticketList"><p class="foot-note" style="text-align:right;">در حال بارگذاری...</p></div>
+    </div>
+  </div>
+
+  <!-- مشاهده یک تیکت -->
+  <div class="tab-panel" id="panel-ticket-view">
+    <div class="panel">
+      <button class="tab-btn" id="backToList" style="margin-bottom:14px;">← بازگشت به لیست</button>
+      <h2 id="ticketViewTitle">—</h2>
+      <p class="foot-note" id="ticketViewMeta" style="text-align:right; margin-bottom:16px;"></p>
+      <div id="ticketMessages"></div>
+    </div>
+  </div>
+
+  <!-- تیکت جدید -->
+  <div class="tab-panel" id="panel-new-ticket">
+    <div class="panel">
+      <h2>ثبت تیکت جدید</h2>
+      <form id="ticketForm">
+        <div class="field">
+          <label for="tTitle">عنوان تیکت</label>
+          <input id="tTitle" type="text" required maxlength="150" placeholder="مثلاً مشکل در ورود به سرور">
+        </div>
+        <div class="field">
+          <label for="tBody">متن پیام</label>
+          <textarea id="tBody" required maxlength="4000" placeholder="مشکلت رو با جزئیات توضیح بده..."></textarea>
+        </div>
+        <button type="submit" class="btn-main" id="ticketSubmitBtn">ارسال تیکت</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- اطلاعات حساب -->
+  <div class="tab-panel" id="panel-account">
+    <div class="panel">
+      <h2>اطلاعات حساب</h2>
+      <p class="foot-note" style="text-align:right; margin-bottom:6px;">نام کاربری: <b id="accUsername" style="color:var(--text);">—</b></p>
+      <p class="foot-note" style="text-align:right; margin-bottom:18px;">ایمیل: <b id="accEmail" style="color:var(--text);">—</b></p>
+    </div>
+    <div class="panel">
+      <h2>تغییر رمز عبور</h2>
+      <form id="pwForm">
+        <div class="field">
+          <label for="curPw">رمز فعلی</label>
+          <input id="curPw" type="password" required autocomplete="current-password">
+        </div>
+        <div class="field">
+          <label for="newPw">رمز جدید</label>
+          <input id="newPw" type="password" required minlength="8" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-main" id="pwSubmitBtn">به‌روزرسانی رمز</button>
+      </form>
+    </div>
+  </div>
+
+  <a href="index.html" class="back-link">🏠 بازگشت به سایت اصلی</a>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  tcmRequireLogin();
+
+  var errBox = document.getElementById("errBox");
+  var okBox = document.getElementById("okBox");
+  function showError(msg){ okBox.classList.remove("show"); errBox.textContent = msg; errBox.classList.add("show"); }
+  function showOk(msg){ errBox.classList.remove("show"); okBox.textContent = msg; okBox.classList.add("show"); }
+  function clearAlerts(){ errBox.classList.remove("show"); okBox.classList.remove("show"); }
+
+  function switchTab(name){
+    document.querySelectorAll(".tab-panel").forEach(function(p){ p.classList.remove("active"); });
+    document.querySelectorAll(".tab-btn[data-tab]").forEach(function(b){ b.classList.remove("active"); });
+    var panel = document.getElementById("panel-" + name);
+    if(panel) panel.classList.add("active");
+    var btn = document.querySelector(".tab-btn[data-tab='" + name + "']");
+    if(btn) btn.classList.add("active");
+    clearAlerts();
+  }
+  document.querySelectorAll(".tab-btn[data-tab]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      switchTab(btn.getAttribute("data-tab"));
+      if(btn.getAttribute("data-tab") === "tickets") loadTickets();
+    });
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", function(){
+    tcmApi("auth/logout.php", {}).finally(function(){
+      tcmClearToken();
+      window.location.href = "login.html";
+    });
+  });
+
+  function statusLabel(status){
+    if(status === "open") return { text: "باز", cls: "open" };
+    if(status === "answered") return { text: "پاسخ داده شده", cls: "answered" };
+    return { text: "بسته شده", cls: "closed" };
+  }
+
+  function loadTickets(){
+    var listEl = document.getElementById("ticketList");
+    listEl.innerHTML = "<p class=\"foot-note\" style=\"text-align:right;\">در حال بارگذاری...</p>";
+    tcmApi("tickets/list.php", {}).then(function(res){
+      if(!res.ok){
+        if(res.status === 401){ tcmClearToken(); window.location.href = "login.html"; return; }
+        listEl.innerHTML = "";
+        showError(res.data.message || "خطا در دریافت تیکت‌ها.");
+        return;
+      }
+      var tickets = res.data.tickets || [];
+      listEl.innerHTML = "";
+      if(tickets.length === 0){
+        listEl.innerHTML = "<p class=\"foot-note\" style=\"text-align:right;\">هنوز تیکتی ثبت نکردی.</p>";
+        return;
+      }
+      tickets.forEach(function(t){
+        var row = document.createElement("a");
+        row.className = "ticket-row";
+        row.href = "javascript:void(0)";
+        var st = statusLabel(t.status);
+        row.innerHTML =
+          "<div><div class=\"t-title\"></div><div class=\"t-date\"></div></div>" +
+          "<span class=\"status-pill " + st.cls + "\"></span>";
+        row.querySelector(".t-title").textContent = t.title;
+        row.querySelector(".t-date").textContent = t.created_at;
+        row.querySelector(".status-pill").textContent = st.text;
+        row.addEventListener("click", function(){ openTicket(t.id); });
+        listEl.appendChild(row);
+      });
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); });
+  }
+
+  function openTicket(id){
+    tcmApi("tickets/view.php", { id: id }).then(function(res){
+      if(!res.ok){
+        showError(res.data.message || "این تیکت پیدا نشد.");
+        return;
+      }
+      var ticket = res.data.ticket;
+      var messages = res.data.messages || [];
+      document.getElementById("ticketViewTitle").textContent = ticket.title;
+      var st = statusLabel(ticket.status);
+      document.getElementById("ticketViewMeta").textContent = "وضعیت: " + st.text + " — ثبت شده در " + ticket.created_at;
+
+      var msgsWrap = document.getElementById("ticketMessages");
+      msgsWrap.innerHTML = "";
+      messages.forEach(function(m){
+        var bubble = document.createElement("div");
+        bubble.className = "msg-bubble " + (m.sender_type === "admin" ? "admin" : "user");
+        var meta = document.createElement("div"); meta.className = "m-meta";
+        meta.textContent = (m.sender_type === "admin" ? "پاسخ تیم پشتیبانی" : "پیام تو") + " — " + m.created_at;
+        var body = document.createElement("div"); body.textContent = m.body;
+        bubble.appendChild(meta); bubble.appendChild(body);
+        msgsWrap.appendChild(bubble);
+      });
+
+      switchTab("ticket-view");
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); });
+  }
+
+  document.getElementById("backToList").addEventListener("click", function(){ switchTab("tickets"); loadTickets(); });
+
+  document.getElementById("ticketForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    clearAlerts();
+    var btn = document.getElementById("ticketSubmitBtn");
+    if(btn.disabled) return;
+    btn.disabled = true; btn.textContent = "در حال ارسال...";
+
+    var title = document.getElementById("tTitle").value.trim();
+    var body = document.getElementById("tBody").value.trim();
+
+    tcmApi("tickets/create.php", { title: title, body: body }).then(function(res){
+      if(res.ok){
+        document.getElementById("tTitle").value = "";
+        document.getElementById("tBody").value = "";
+        switchTab("tickets");
+        loadTickets();
+      } else {
+        showError(res.data.message || "ارسال تیکت انجام نشد.");
+      }
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); })
+      .finally(function(){ btn.disabled = false; btn.textContent = "ارسال تیکت"; });
+  });
+
+  document.getElementById("pwForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    clearAlerts();
+    var btn = document.getElementById("pwSubmitBtn");
+    if(btn.disabled) return;
+    btn.disabled = true; btn.textContent = "در حال ذخیره...";
+
+    var curPw = document.getElementById("curPw").value;
+    var newPw = document.getElementById("newPw").value;
+
+    tcmApi("auth/change_password.php", { current_password: curPw, new_password: newPw }).then(function(res){
+      if(res.ok){
+        showOk("رمز عبور با موفقیت تغییر کرد.");
+        document.getElementById("curPw").value = "";
+        document.getElementById("newPw").value = "";
+      } else {
+        showError(res.data.message || "تغییر رمز انجام نشد.");
+      }
+    }).catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد."); })
+      .finally(function(){ btn.disabled = false; btn.textContent = "به‌روزرسانی رمز"; });
+  });
+
+  function loadMe(){
+    tcmApi("auth/me.php", {}).then(function(res){
+      if(!res.ok){
+        tcmClearToken();
+        window.location.href = "login.html";
+        return;
+      }
+      document.getElementById("accUsername").textContent = res.data.user.username;
+      document.getElementById("accEmail").textContent = res.data.user.email;
+    }).catch(function(){});
+  }
+
+  loadMe();
+  loadTickets();
+</script>
+</body>
+</html>

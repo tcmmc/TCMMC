@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<title>ثبت‌نام | TCM MC</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css">
+</head>
+<body>
+
+<div class="scene" aria-hidden="true"></div>
+
+<div class="wrap">
+  <div class="brand"><span>👑</span><span class="full">TCM <b>MC</b></span></div>
+
+  <div class="card">
+    <h1>ساخت حساب کاربری</h1>
+    <p class="sub">برای ثبت تیکت پشتیبانی، اول یه حساب بساز</p>
+
+    <div class="alert error" id="errBox"></div>
+
+    <form id="regForm" novalidate>
+      <div class="field">
+        <label for="username">نام کاربری</label>
+        <input id="username" name="username" type="text" placeholder="مثلاً Ali_MC" autocomplete="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+">
+        <div class="hint">فقط حروف انگلیسی، عدد و زیرخط، بین ۳ تا ۳۲ کاراکتر</div>
+      </div>
+      <div class="field">
+        <label for="email">ایمیل</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required maxlength="190">
+      </div>
+      <div class="field">
+        <label for="password">رمز عبور</label>
+        <input id="password" name="password" type="password" placeholder="حداقل ۸ کاراکتر" autocomplete="new-password" required minlength="8" maxlength="72">
+      </div>
+      <div class="field">
+        <label for="password2">تکرار رمز عبور</label>
+        <input id="password2" name="password2" type="password" placeholder="••••••••" autocomplete="new-password" required minlength="8" maxlength="72">
+      </div>
+
+      <button id="submitBtn" type="submit" class="btn-main">ثبت‌نام</button>
+    </form>
+  </div>
+
+  <p class="foot-note">قبلاً حساب ساختی؟ <a href="login.html" style="color:var(--sky); text-decoration:none;">وارد شو</a></p>
+  <a href="index.html" class="back-link">🏠 بازگشت به سایت اصلی</a>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  var form = document.getElementById("regForm");
+  var errBox = document.getElementById("errBox");
+  var submitBtn = document.getElementById("submitBtn");
+
+  function showError(msg){
+    errBox.textContent = msg;
+    errBox.classList.add("show", "error");
+  }
+  function clearError(){ errBox.classList.remove("show"); }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    clearError();
+
+    var username = document.getElementById("username").value.trim();
+    var email = document.getElementById("email").value.trim();
+    var password = document.getElementById("password").value;
+    var password2 = document.getElementById("password2").value;
+
+    if(password !== password2){
+      showError("رمز عبور و تکرارش یکی نیستن.");
+      return;
+    }
+    if(password.length < 8){
+      showError("رمز عبور باید حداقل ۸ کاراکتر باشه.");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "در حال ثبت‌نام...";
+
+    tcmApi("auth/register.php", { username: username, email: email, password: password })
+      .then(function(res){
+        if(res.ok){
+          tcmSetToken(res.data.token);
+          window.location.href = "account.html";
+        } else {
+          showError(res.data.message || "ثبت‌نام انجام نشد.");
+        }
+      })
+      .catch(function(){ showError("مشکلی در ارتباط با سرور پیش اومد. دوباره تلاش کن."); })
+      .finally(function(){
+        submitBtn.disabled = false;
+        submitBtn.textContent = "ثبت‌نام";
+      });
+  });
+</script>
+</body>
+</html>
