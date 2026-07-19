@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ساخت اولین ادمین</title>
+<style>
+  body{ font-family: Tahoma, sans-serif; background:#05070f; color:#eef2ff; padding:24px; max-width:480px; margin:0 auto; }
+  h1{ font-size:18px; margin-bottom:16px; }
+  label{ display:block; font-size:13px; color:#93a3ce; margin:14px 0 6px; }
+  input{ width:100%; padding:12px; border-radius:10px; border:1px solid #33447f; background:#0d1330; color:#eef2ff; font-size:14px; box-sizing:border-box; }
+  button{ margin-top:20px; width:100%; padding:14px; border-radius:999px; border:none; background:#3d63f5; color:#fff; font-weight:bold; font-size:15px; }
+  #result{ margin-top:18px; padding:14px; border-radius:10px; font-size:13px; white-space:pre-wrap; display:none; }
+  #result.ok{ background:rgba(94,203,255,0.1); border:1px solid #5ecbff; display:block; }
+  #result.err{ background:rgba(255,80,80,0.1); border:1px solid #ff6e6e; display:block; }
+</style>
+</head>
+<body>
+  <h1>🔧 ابزار ساخت اولین ادمین (یک‌بار مصرف)</h1>
+
+  <label>آدرس بک‌اند (API base)</label>
+  <input id="apiBase" value="https://tcm-mc-backend-production.up.railway.app/api/" />
+
+  <label>ADMIN_SETUP_KEY (همونی که توی Railway Variables گذاشتی)</label>
+  <input id="setupKey" type="text" placeholder="کلید راه‌اندازی" />
+
+  <label>نام کاربری ادمین</label>
+  <input id="username" type="text" placeholder="مثلاً admin" />
+
+  <label>رمز عبور ادمین</label>
+  <input id="password" type="password" placeholder="حداقل ۸ کاراکتر" />
+
+  <button id="btn">ساخت ادمین</button>
+
+  <div id="result"></div>
+
+<script>
+  document.getElementById("btn").addEventListener("click", function(){
+    var apiBase = document.getElementById("apiBase").value.trim().replace(/\/api\/?$/, "/");
+    var setupKey = document.getElementById("setupKey").value.trim();
+    var username = document.getElementById("username").value.trim();
+    var password = document.getElementById("password").value;
+    var resultEl = document.getElementById("result");
+    resultEl.className = ""; resultEl.textContent = "در حال ارسال...";
+    resultEl.className = "ok";
+
+    fetch(apiBase + "setup_admin.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setup_key: setupKey, username: username, password: password })
+    }).then(function(res){
+      return res.json().then(function(data){ return { ok: res.ok, data: data }; });
+    }).then(function(res){
+      resultEl.className = res.ok ? "ok" : "err";
+      resultEl.textContent = JSON.stringify(res.data, null, 2);
+    }).catch(function(err){
+      resultEl.className = "err";
+      resultEl.textContent = "خطا در ارتباط: " + err.message + "\n\nاگه اینجا اومدی، معمولاً یعنی آدرس بک‌اند اشتباهه یا ALLOWED_ORIGINS این صفحه رو (فایل local) قبول نمی‌کنه. اگه این خطا رو گرفتی، بگو تا راه‌حل جایگزین بدم.";
+    });
+  });
+</script>
+</body>
+</html>
