@@ -1,7 +1,7 @@
 /* Shared helper for talking to the Railway PHP backend.
    IMPORTANT: set API_BASE to your Railway deployment URL before going live,
    e.g. "https://tcmmc-backend-production.up.railway.app/api/" */
-var TCM_API_BASE = "https://tcmmc-backend-production.up.railway.app/api/";
+var TCM_API_BASE = "https://tcm-mc-backend-production.up.railway.app/api/";
 
 function tcmGetToken(){ return localStorage.getItem("tcm_token") || ""; }
 function tcmSetToken(token){ localStorage.setItem("tcm_token", token); }
